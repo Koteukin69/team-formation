@@ -3,7 +3,6 @@
 ## Стек
 - Fullstack Фреймворк NextJS (App Router)
 - Tailwind + CSS-модули (при необходимости сложных стилей)
-- Коллекция React компонентов shadcn/ui
 - Serverless MongoDB Atlas
 - Почтовый клиент Resend
 - Библиотека jose (JWT сессии)
