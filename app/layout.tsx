@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Geist, Geist_Mono } from "next/font/google";
+import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 import { ThemeProvider } from "next-themes"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import { Header } from "@/components/header";
+import Config from "@/config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,11 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Системы формирования команд для марафона",
-  description: `
-Продвинутая система формирования команд для марафонов/хаккатонов по модели рекрутинговых платформ, где команда - работодатель, а участник марафона - соискатель.
-Автор Koteukin69 - https://github.com/koteukin69/
-`,
+  title: `${Config.name} - Системы формирования команд для марафона`,
+  description: Config.description,
 };
 
 export default function RootLayout({
@@ -45,7 +44,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Header />
-          <main>{children}</main> 
+          <main>{children}</main>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { AccountMenu } from '@/components/account-menu'
 
-export function AccountButton() {
+export function AccountButton({ userEmail }: { userEmail: string | null }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -19,11 +19,15 @@ export function AccountButton() {
       <Popover>
         <PopoverTrigger asChild>
           <Button className="rounded-full h-10 w-10" variant="outline" size="icon-lg">
-            <LogIn className="h-5 w-5" />
+            { userEmail ? (
+              <UserRound className="h-5 w-5" />
+            ) : (
+              <LogIn className="h-5 w-5" />
+            )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-40" align="end" sideOffset={10} >
-          <AccountMenu />
+        <PopoverContent className="min-w-80" align="end" sideOffset={10} >
+          <AccountMenu userEmail={userEmail}/>
         </PopoverContent>
       </Popover>
     ) : (
