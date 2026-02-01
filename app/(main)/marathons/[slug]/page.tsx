@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Users, Calendar } from "lucide-react";
 import Config from "@/config";
+import { getBaseUrl } from "@/lib/url";
 
 interface Marathon {
   id: string;
@@ -17,7 +18,7 @@ interface Marathon {
 
 async function getMarathon(slug: string): Promise<Marathon | null> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/marathons/${slug}`,
+    `${getBaseUrl()}/api/marathons/${slug}`,
     { cache: 'no-store' }
   );
   
