@@ -3,32 +3,13 @@ import { headers } from "next/headers";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, Users } from "lucide-react";
-import { getBaseUrl } from "@/lib/url";
+import { getMarathons } from "@/lib/data/marathons";
 
-interface Marathon {
-  id: string;
-  name: string;
-  slug: string;
-  minTeamSize: number;
-  maxTeamSize: number;
-  createdAt: string;
-}
-
-async function getMarathons(): Promise<Marathon[]> {
-  const res = await fetch(`${getBaseUrl()}/api/marathons`, {
-    cache: 'no-store',
-  });
-  
-  if (!res.ok) return [];
-  
-  const data = await res.json();
-  return data.marathons || [];
-}
-
-export default async function Marathons() {
+export default async function MarathonsPage() {
   const headersList = await headers();
-  const userRole = headersList.get('x-user-role');
+  const userRole = headersList.get("x-user-role");
   const marathons = await getMarathons();
+  const canCreate = userRole === "organizer" || userRole === "admin";
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -48,19 +29,12 @@ export default async function Marathons() {
             Выберите марафон для участия
           </p>
         </div>
-        {(userRole == 'organizer' || userRole == 'admin') ? (
-          <Button asChild>
-            <Link href="/create_marathon">
-              <Plus className="size-4" />
-              Создать марафон
-            </Link>
-          </Button>
-        ) : (
-          <Button disabled>
+        <Button asChild={canCreate} disabled={!canCreate}>
+          <Link href="/create_marathon">
             <Plus className="size-4" />
             Создать марафон
-          </Button>
-        )}
+          </Link>
+        </Button>
       </div>
 
       {marathons.length === 0 ? (
@@ -72,19 +46,12 @@ export default async function Marathons() {
           <p className="text-muted-foreground mb-4">
             Будьте первым, кто создаст марафон!
           </p>
-          {(userRole == 'organizer' || userRole == 'admin') ? (
-            <Button asChild>
-              <Link href="/create_marathon">
-                <Plus className="size-4" />
-                Создать марафон
-              </Link>
-            </Button>
-          ) : (
-            <Button disabled>
+          <Button asChild={canCreate} disabled={!canCreate}>
+            <Link href="/create_marathon">
               <Plus className="size-4" />
               Создать марафон
-            </Button>
-          )}
+            </Link>
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

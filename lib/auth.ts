@@ -2,10 +2,15 @@ import { SignJWT, jwtVerify } from 'jose';
 import { NextRequest } from 'next/server';
 
 const jwtSecret = process.env.JWT_SECRET;
-if (!jwtSecret || jwtSecret.length < 32) {
+const isDev = process.env.NODE_ENV === 'development';
+
+if (!isDev && (!jwtSecret || jwtSecret.length < 32)) {
   throw new Error('JWT_SECRET environment variable must be set and at least 32 characters');
 }
-const SECRET_KEY = new TextEncoder().encode(jwtSecret);
+
+const SECRET_KEY = new TextEncoder().encode(
+  jwtSecret || 'dev-secret-key-for-local-development-only'
+);
 
 export interface JWTPayload {
   email: string;

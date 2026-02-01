@@ -5,35 +5,15 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Users, Calendar } from "lucide-react";
 import Config from "@/config";
-import { getBaseUrl } from "@/lib/url";
+import { getMarathonBySlug } from "@/lib/data/marathons";
 
-interface Marathon {
-  id: string;
-  name: string;
-  slug: string;
-  minTeamSize: number;
-  maxTeamSize: number;
-  createdAt: string;
-}
-
-async function getMarathon(slug: string): Promise<Marathon | null> {
-  const res = await fetch(
-    `${getBaseUrl()}/api/marathons/${slug}`,
-    { cache: 'no-store' }
-  );
-  
-  if (!res.ok) return null;
-  
-  return res.json();
-}
-
-export async function generateMetadata({
-  params,
-}: {
+type Props = {
   params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const marathon = await getMarathon(slug);
+  const marathon = await getMarathonBySlug(slug);
 
   if (!marathon) {
     return {
@@ -47,22 +27,18 @@ export async function generateMetadata({
   };
 }
 
-export default async function MarathonPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function MarathonPage({ params }: Props) {
   const { slug } = await params;
-  const marathon = await getMarathon(slug);
+  const marathon = await getMarathonBySlug(slug);
 
   if (!marathon) {
     notFound();
   }
 
-  const createdDate = new Date(marathon.createdAt).toLocaleDateString('ru-RU', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
+  const createdDate = new Date(marathon.createdAt).toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
   });
 
   return (
@@ -92,7 +68,7 @@ export default async function MarathonPage({
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3 text-sm">
               <Calendar className="size-5 text-muted-foreground" />
               <div>
