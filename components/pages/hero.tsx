@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 export async function Hero() {
   const headersList = await headers();
   const userRole = headersList.get('x-user-role');
+  const canCreate = userRole === "organizer" || userRole === "admin";
 
   return (
     <div className="h-[calc(100vh-10rem)] flex flex-col items-center justify-center gap-20">
@@ -16,7 +17,7 @@ export async function Hero() {
         <Button className="cursor-pointer" size="lg" asChild>
           <Link href="/marathons">Найти марафон</Link>
         </Button>
-        {(userRole == 'organizer' || userRole == 'admin') ? (
+        { canCreate ? (
           <Button variant="outline" size="lg" asChild>
             <Link href="/create_marathon">Создать марафон</Link>
           </Button>

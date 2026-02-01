@@ -29,12 +29,20 @@ export default async function MarathonsPage() {
             Выберите марафон для участия
           </p>
         </div>
-        <Button asChild={canCreate} disabled={!canCreate}>
+        { canCreate ? (
+          <Button asChild>
           <Link href="/create_marathon">
             <Plus className="size-4" />
             Создать марафон
           </Link>
         </Button>
+        ) : (
+          <Button disabled>
+            <Plus className="size-4" />
+            Создать марафон
+          </Button>
+        )}
+        
       </div>
 
       {marathons.length === 0 ? (
@@ -46,12 +54,19 @@ export default async function MarathonsPage() {
           <p className="text-muted-foreground mb-4">
             Будьте первым, кто создаст марафон!
           </p>
-          <Button asChild={canCreate} disabled={!canCreate}>
-            <Link href="/create_marathon">
+          { canCreate ? (
+            <Button asChild>
+              <Link href="/create_marathon">
+                <Plus className="size-4" />
+                Создать марафон
+              </Link>
+            </Button>
+          ) : (
+            <Button disabled>
               <Plus className="size-4" />
               Создать марафон
-            </Link>
-          </Button>
+            </Button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
