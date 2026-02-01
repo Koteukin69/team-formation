@@ -3,24 +3,19 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Field, FieldDescription, FieldError, FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Mail, ArrowLeft, Loader2 } from "lucide-react";
 import { requestCodeSchema, verifyCodeSchema } from "@/lib/validator";
 
 type FormState = "email" | "code";
-
-interface FormError {
-  field?: string;
-  message: string;
-}
 
 export function LoginForm() {
   const router = useRouter();
   const [formState, setFormState] = useState<FormState>("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [error, setError] = useState<FormError | null>(null);
+  const [error, setError] = useState<{ field?: string; message: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const handleRequestCode = async (e: React.FormEvent) => {
@@ -76,6 +71,12 @@ export function LoginForm() {
         const data = await response.json();
 
         if (!response.ok) {
+          if (data.exhausted) {
+            setFormState("email");
+            setCode("");
+            setError({ message: data.error || "Попытки исчерпаны. Запросите новый код." });
+            return;
+          }
           setError({ message: data.error || "Неверный код" });
           return;
         }
@@ -107,52 +108,50 @@ export function LoginForm() {
           </p>
         </div>
 
-        <form onSubmit={handleVerifyCode} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="code">Код подтверждения</Label>
-            <Input
-              id="code"
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={6}
-              placeholder="000000"
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-              className="text-center text-lg tracking-[0.5em] font-mono"
+        <form onSubmit={handleVerifyCode}>
+          <FieldSet>
+            <Field data-invalid={error?.field === "code"}>
+              <FieldLabel htmlFor="code">Код подтверждения</FieldLabel>
+              <Input
+                id="code"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                placeholder="000000"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                className="text-center text-lg tracking-[0.5em] font-mono"
+                disabled={isPending}
+                autoFocus
+              />
+              {error?.field === "code" && <FieldError>{error.message}</FieldError>}
+            </Field>
+
+            {error && !error.field && <FieldError>{error.message}</FieldError>}
+
+            <Button type="submit" disabled={isPending || code.length !== 6}>
+              {isPending ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  Проверка...
+                </>
+              ) : (
+                "Подтвердить"
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleBackToEmail}
               disabled={isPending}
-              autoFocus
-              aria-invalid={error?.field === "code"}
-            />
-          </div>
-
-          {error && (
-            <p className="text-sm text-destructive text-center">
-              {error.message}
-            </p>
-          )}
-
-          <Button type="submit" disabled={isPending || code.length !== 6}>
-            {isPending ? (
-              <>
-                <Loader2 className="animate-spin" />
-                Проверка...
-              </>
-            ) : (
-              "Подтвердить"
-            )}
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={handleBackToEmail}
-            disabled={isPending}
-            className="gap-2"
-          >
-            <ArrowLeft className="size-4" />
-            Изменить email
-          </Button>
+              className="gap-2"
+            >
+              <ArrowLeft className="size-4" />
+              Изменить email
+            </Button>
+          </FieldSet>
         </form>
       </div>
     );
@@ -162,47 +161,45 @@ export function LoginForm() {
     <div className="flex flex-col gap-6 w-[340px]">
       <div className="flex flex-col gap-2 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Вход в систему
+          Авторизация
         </h1>
         <p className="text-sm text-muted-foreground">
           Введите email для входа в аккаунт
         </p>
       </div>
 
-      <form onSubmit={handleRequestCode} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="name@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={isPending}
-            autoFocus
-            aria-invalid={error?.field === "email"}
-          />
-        </div>
+      <form onSubmit={handleRequestCode}>
+        <FieldSet>
+          <Field data-invalid={error?.field === "email"}>
+            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <Input
+              id="email"
+              type="email"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isPending}
+              autoFocus
+            />
+            {error?.field === "email" && <FieldError>{error.message}</FieldError>}
+          </Field>
 
-        {error && (
-          <p className="text-sm text-destructive text-center">
-            {error.message}
-          </p>
-        )}
+          {error && !error.field && <FieldError>{error.message}</FieldError>}
 
-        <Button type="submit" disabled={isPending || !email}>
-          {isPending ? (
-            <>
-              <Loader2 className="animate-spin" />
-              Отправка...
-            </>
-          ) : (
-            <>
-              <Mail className="size-4" />
-              Войти по Email
-            </>
-          )}
-        </Button>
+          <Button type="submit" disabled={isPending || !email}>
+            {isPending ? (
+              <>
+                <Loader2 className="animate-spin" />
+                Отправка...
+              </>
+            ) : (
+              <>
+                <Mail className="size-4" />
+                Войти по Email
+              </>
+            )}
+          </Button>
+        </FieldSet>
       </form>
     </div>
   );

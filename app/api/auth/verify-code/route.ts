@@ -5,7 +5,7 @@ import { verifyCodeSchema } from '@/lib/validator';
 
 export async function POST(req: NextRequest) {
   try {
-    const validated = (await verifyCodeSchema.safeParse(await req.json()));
+    const validated = (await verifyCodeSchema.safeParseAsync(await req.json()));
     if (!validated.success) {
       return NextResponse.json(
         { error: 'Неверный email или код' },
@@ -37,10 +37,25 @@ export async function POST(req: NextRequest) {
     }
 
     if (code !== authCode.code) {
+      const newAttempts = (authCode.attempts || 0) + 1;
+
+      if (newAttempts >= 5) {
+        await codes.deleteOne({ _id: authCode._id });
+        return NextResponse.json(
+          { error: 'Превышено количество попыток. Запросите новый код.', exhausted: true },
+          { status: 429 }
+        );
+      }
+
+      await codes.updateOne(
+        { _id: authCode._id },
+        { $set: { attempts: newAttempts } }
+      );
+
       return NextResponse.json(
-        { error: 'Неверный код' },
+        { error: 'Неверный код', attemptsLeft: 5 - newAttempts },
         { status: 401 }
-      )
+      );
     }
 
     await codes.deleteOne({ _id: authCode._id });
@@ -63,7 +78,7 @@ export async function POST(req: NextRequest) {
     const role = user ? user.role : "user";
 
     const token = await createToken({
-      email: email,
+      email: normalizedEmail,
       role: role
     });
 
@@ -81,7 +96,7 @@ export async function POST(req: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Verify code error:', error)
+    console.error(error)
     return NextResponse.json(
       { error: 'Внутренняя ошибка сервера' },
       { status: 500 }

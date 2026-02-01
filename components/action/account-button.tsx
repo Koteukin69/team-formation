@@ -5,7 +5,7 @@ import { UserRound, LogIn } from 'lucide-react'
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { AccountMenu } from '@/components/account-menu'
+import { AccountMenu } from '@/components/action/account-menu'
 
 export function AccountButton({ userEmail }: { userEmail: string | null }) {
   const [mounted, setMounted] = useState(false);

@@ -1,5 +1,10 @@
 import { template, TemplateExecutor } from 'lodash';
 
+interface RateLimitConfig {
+  window: number,
+  max: number,
+}
+
 interface IConfig {
   name: string,
   briefDescription: string,
@@ -8,6 +13,11 @@ interface IConfig {
   authCodeTtlMs: number,
   emailSubject: TemplateExecutor,
   emailHtml: TemplateExecutor,
+  rateLimits: {
+    email: RateLimitConfig,
+    ipPerMinute: RateLimitConfig,
+    ipPerHour: RateLimitConfig,
+  },
 }
 
 const Config:IConfig = {
@@ -19,6 +29,11 @@ const Config:IConfig = {
 `,
   email: "tf@llland.ru",
   authCodeTtlMs: 10 * 60 * 1000,
+  rateLimits: {
+    email: { window: 60 * 60 * 1000, max: 5 },
+    ipPerMinute: { window: 60 * 1000, max: 2 },
+    ipPerHour: { window: 60 * 60 * 1000, max: 7 },
+  },
   emailSubject: template("Вход в <%= name %>"),
   emailHtml: template(`
 <!DOCTYPE html>

@@ -1,8 +1,11 @@
 import { SignJWT, jwtVerify } from 'jose';
+import { NextRequest } from 'next/server';
 
-const SECRET_KEY = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'your-secret-key-min-32-chars'
-);
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret || jwtSecret.length < 32) {
+  throw new Error('JWT_SECRET environment variable must be set and at least 32 characters');
+}
+const SECRET_KEY = new TextEncoder().encode(jwtSecret);
 
 export interface JWTPayload {
   email: string;
@@ -24,4 +27,10 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
   } catch {
     return null;
   }
+}
+
+export async function getUserFromRequest(req: NextRequest): Promise<JWTPayload | null> {
+  const token = req.cookies.get('auth-token')?.value;
+  if (!token) return null;
+  return verifyToken(token);
 }

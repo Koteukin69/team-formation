@@ -1,5 +1,5 @@
-import { AccountButton } from "./account-button";
-import { ThemeToggle } from "./theme-toggle";
+import { AccountButton } from "@/components/action/account-button";
+import { ThemeToggle } from "../action/theme-toggle";
 import { headers } from "next/headers";
 
 export async function Header() {

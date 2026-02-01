@@ -7,13 +7,6 @@ export async function proxy(request: NextRequest) {
   const token = request.cookies.get('auth-token')?.value;
   const payload = token ? await verifyToken(token) : null;
 
-  const protectedPaths = ['/dashboard', '/profile', '/admin'];
-  const isProtected = protectedPaths.some(path => pathname.startsWith(path));
-
-  if (isProtected && !payload) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
   if (pathname.startsWith('/login') && payload) {
     return NextResponse.redirect(new URL('/', request.url));
   }
@@ -23,12 +16,17 @@ export async function proxy(request: NextRequest) {
     response.cookies.delete('auth-token');
     return response;
   }
-  
+
   const requestHeaders = new Headers(request.headers);
-  if (payload) {
-    requestHeaders.set('x-user-email', payload.email);
-    requestHeaders.set('x-user-role', payload.role);
+
+  if (pathname.startsWith('/create_marathon') && (!payload || !['organizer', 'admin'].includes(payload.role))) {
+    return NextResponse.redirect(new URL('/', request.url));
   }
+
+  if (!payload) return NextResponse.next();
+
+  requestHeaders.set('x-user-email', payload.email);
+  requestHeaders.set('x-user-role', payload.role);
   
   return NextResponse.next({
     request: { headers: requestHeaders },

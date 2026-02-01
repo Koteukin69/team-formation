@@ -1,5 +1,114 @@
-export default function Marathons() {
+import Link from "next/link";
+import { headers } from "next/headers";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Plus, Users } from "lucide-react";
+
+interface Marathon {
+  id: string;
+  name: string;
+  slug: string;
+  minTeamSize: number;
+  maxTeamSize: number;
+  createdAt: string;
+}
+
+async function getMarathons(): Promise<Marathon[]> {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/marathons`, {
+    cache: 'no-store',
+  });
+  
+  if (!res.ok) return [];
+  
+  const data = await res.json();
+  return data.marathons || [];
+}
+
+export default async function Marathons() {
+  const headersList = await headers();
+  const userRole = headersList.get('x-user-role');
+  const marathons = await getMarathons();
+
   return (
-    <div className={"flex items-center justify-center h-screen"}></div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <Button variant="ghost" asChild>
+          <Link href="/">
+            <ArrowLeft className="size-4" />
+            Вернутся на главную
+          </Link>
+        </Button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Марафоны</h1>
+          <p className="text-muted-foreground mt-1">
+            Выберите марафон для участия
+          </p>
+        </div>
+        {(userRole == 'organizer' || userRole == 'admin') ? (
+          <Button asChild>
+            <Link href="/create_marathon">
+              <Plus className="size-4" />
+              Создать марафон
+            </Link>
+          </Button>
+        ) : (
+          <Button disabled>
+            <Plus className="size-4" />
+            Создать марафон
+          </Button>
+        )}
+      </div>
+
+      {marathons.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="rounded-full bg-muted p-4 mb-4">
+            <Users className="size-8 text-muted-foreground" />
+          </div>
+          <h2 className="text-xl font-semibold mb-2">Нет марафонов</h2>
+          <p className="text-muted-foreground mb-4">
+            Будьте первым, кто создаст марафон!
+          </p>
+          {(userRole == 'organizer' || userRole == 'admin') ? (
+            <Button asChild>
+              <Link href="/create_marathon">
+                <Plus className="size-4" />
+                Создать марафон
+              </Link>
+            </Button>
+          ) : (
+            <Button disabled>
+              <Plus className="size-4" />
+              Создать марафон
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {marathons.map((marathon) => (
+            <Link key={marathon.id} href={`/marathons/${marathon.slug}`}>
+              <Card className="h-full transition-colors hover:bg-accent/50 cursor-pointer">
+                <CardHeader>
+                  <CardTitle className="line-clamp-1">{marathon.name}</CardTitle>
+                  <CardDescription className="font-mono text-xs">
+                    /{marathon.slug}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Users className="size-4" />
+                    <span>
+                      {marathon.minTeamSize} – {marathon.maxTeamSize} участников
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
