@@ -24,7 +24,7 @@ jobs:
             RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}"
             RESEND_FROM="${{ secrets.RESEND_FROM }}"
             JWT_SECRET="${{ secrets.JWT_SECRET }}"
-            NEXT_PUBLIC_ROOT_DOMAIN=${{ secrets.ROOT_DOMAIN }}
+            NEXT_PUBLIC_ROOT_DOMAIN=${{ secrets.NEXT_PUBLIC_ROOT_DOMAIN }}
             EOF
             
             npm install
