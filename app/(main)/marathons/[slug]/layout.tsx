@@ -6,7 +6,7 @@ export default async function MarathonsLayout({
   children, params,
 }: Readonly<{
   children: React.ReactNode;
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }>) {
   const { slug } = await params;
   const marathon = await getMarathonBySlug(slug);
