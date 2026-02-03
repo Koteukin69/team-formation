@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/team-formation
+            git pull origin main
+
+            cat > .env.local << EOF
+            MONGODB_URI="${{ secrets.MONGODB_URI }}"
+            RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}"
+            RESEND_FROM="${{ secrets.RESEND_FROM }}"
+            JWT_SECRET="${{ secrets.JWT_SECRET }}"
+            NEXT_PUBLIC_ROOT_DOMAIN=${{ secrets.ROOT_DOMAIN }}
+            EOF
+            
+            npm install
+            npm run build
+            pm2 restart my-app
