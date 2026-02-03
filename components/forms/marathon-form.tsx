@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Loader2, Plus } from "lucide-react";
 import { marathonSchema } from "@/lib/validator";
@@ -13,6 +14,8 @@ export function MarathonForm() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [topic, setTopic] = useState("");
+  const [description, setDescription] = useState("");
   const [teamSize, setTeamSize] = useState([2, 5]);
   const [error, setError] = useState<{ field?: string; message: string } | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -23,7 +26,9 @@ export function MarathonForm() {
 
     const validation = marathonSchema.safeParse({ 
       name, 
-      slug, 
+      slug,
+      topic,
+      description,
       minTeamSize: teamSize[0], 
       maxTeamSize: teamSize[1] 
     });
@@ -44,7 +49,9 @@ export function MarathonForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
             name, 
-            slug, 
+            slug,
+            topic,
+            description,
             minTeamSize: teamSize[0], 
             maxTeamSize: teamSize[1] 
           }),
@@ -104,6 +111,34 @@ export function MarathonForm() {
             />
             <FieldDescription>От 3 до 16 символов, только латиница и цифры</FieldDescription>
             {error?.field === "slug" && <FieldError>{error.message}</FieldError>}
+          </Field>
+
+          <Field data-invalid={error?.field === "topic"}>
+            <FieldLabel htmlFor="topic">Тема (необязательно)</FieldLabel>
+            <Input
+              id="topic"
+              type="text"
+              placeholder="Разработка игр"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              disabled={isPending}
+              maxLength={100}
+            />
+            {error?.field === "topic" && <FieldError>{error.message}</FieldError>}
+          </Field>
+
+          <Field data-invalid={error?.field === "description"}>
+            <FieldLabel htmlFor="description">Описание (необязательно)</FieldLabel>
+            <Textarea
+              id="description"
+              placeholder="Расскажите о вашем марафоне... (поддерживается Markdown)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={isPending}
+              rows={4}
+            />
+            <FieldDescription>До 1000 символов, поддерживается Markdown</FieldDescription>
+            {error?.field === "description" && <FieldError>{error.message}</FieldError>}
           </Field>
 
           <Field data-invalid={error?.field === "minTeamSize" || error?.field === "maxTeamSize"}>

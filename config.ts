@@ -1,5 +1,7 @@
 import { template, TemplateExecutor } from 'lodash';
 
+const isDev = process.env.NODE_ENV === 'development';
+
 interface RateLimitConfig {
   window: number,
   max: number,
@@ -29,11 +31,17 @@ const Config:IConfig = {
 `,
   email: "tf@llland.ru",
   authCodeTtlMs: 10 * 60 * 1000,
-  rateLimits: {
-    email: { window: 60 * 60 * 1000, max: 5 },
-    ipPerMinute: { window: 60 * 1000, max: 2 },
-    ipPerHour: { window: 60 * 60 * 1000, max: 7 },
-  },
+  rateLimits: isDev
+    ? {
+        email: { window: 1, max: Number.MAX_SAFE_INTEGER },
+        ipPerMinute: { window: 1, max: Number.MAX_SAFE_INTEGER },
+        ipPerHour: { window: 1, max: Number.MAX_SAFE_INTEGER },
+      }
+    : {
+        email: { window: 60 * 60 * 1000, max: 5 },
+        ipPerMinute: { window: 60 * 1000, max: 2 },
+        ipPerHour: { window: 60 * 60 * 1000, max: 7 },
+      },
   emailSubject: template("Вход в <%= name %>"),
   emailHtml: template(`
 <!DOCTYPE html>

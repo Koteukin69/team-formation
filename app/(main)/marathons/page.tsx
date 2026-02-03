@@ -10,6 +10,7 @@ export default async function MarathonsPage() {
   const userRole = headersList.get("x-user-role");
   const marathons = await getMarathons();
   const canCreate = userRole === "organizer" || userRole === "admin";
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost";
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -71,7 +72,7 @@ export default async function MarathonsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {marathons.map((marathon) => (
-            <Link key={marathon.id} href={`/marathons/${marathon.slug}`}>
+            <Link key={marathon.id} href={`//${marathon.slug}.${rootDomain}`}>
               <Card className="h-full transition-colors hover:bg-accent/50 cursor-pointer">
                 <CardHeader>
                   <CardTitle className="line-clamp-1">{marathon.name}</CardTitle>

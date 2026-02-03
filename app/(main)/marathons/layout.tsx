@@ -12,8 +12,8 @@ export default function MarathonsLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
+    <div className="p-10 sm:p-20">
       {children}
-    </>
+    </div>
   );
 }

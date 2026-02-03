@@ -6,6 +6,7 @@ import { getUserFromRequest } from "@/lib/auth";
 export async function POST(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req);
+
     if (!user) {
       return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
     }
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { name, slug, minTeamSize, maxTeamSize } = validated.data;
+    const { name, slug, topic, description, minTeamSize, maxTeamSize } = validated.data;
     const collection = await getMarathonsCollection();
 
     const existing = await collection.findOne({ slug });
@@ -32,6 +33,8 @@ export async function POST(req: NextRequest) {
     const marathon = {
       name,
       slug,
+      topic,
+      description,
       minTeamSize,
       maxTeamSize,
       creatorEmail: user.email,
@@ -47,6 +50,8 @@ export async function POST(req: NextRequest) {
         id: result.insertedId.toString(),
         name,
         slug,
+        topic,
+        description,
         minTeamSize,
         maxTeamSize,
       },
