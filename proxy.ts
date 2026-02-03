@@ -7,9 +7,15 @@ export async function proxy(request: NextRequest) {
   const hostname: string = request.headers.get('host') || '';
   const rootDomain: string = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost';
 
-  const subdomain: string = hostname.split('.')[0];
-  const isSubdomain: boolean = subdomain !== rootDomain &&
-    subdomain !== 'www';
+  const hostnameWithoutPort: string = hostname.split(':')[0];
+  
+  const isSubdomain: boolean = hostnameWithoutPort !== rootDomain &&
+    hostnameWithoutPort !== `www.${rootDomain}` &&
+    hostnameWithoutPort.endsWith(`.${rootDomain}`);
+  
+  const subdomain: string = isSubdomain
+    ? hostnameWithoutPort.replace(`.${rootDomain}`, '')
+    : '';
 
   const token: string | undefined = request.cookies.get('auth-token')?.value;
   const payload: JWTPayload | null = token ? await verifyToken(token) : null;
