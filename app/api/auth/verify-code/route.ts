@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import clientPromise from '@/lib/db/mongodb'
+import { collections } from '@/lib/db/collections'
 import { createToken } from '@/lib/auth';
-import { verifyCodeSchema } from '@/lib/validator';
+import { schemas } from '@/lib/validator';
+import { User, Role } from "@/lib/types";
+import { Collection } from "mongodb";
 
 export async function POST(req: NextRequest) {
   try {
-    const validated = (await verifyCodeSchema.safeParseAsync(await req.json()));
+    const validated = (await schemas.verifyCode.safeParseAsync(await req.json()));
     if (!validated.success) {
       return NextResponse.json(
         { error: 'Неверный email или код' },
@@ -13,13 +15,11 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { email, code }:{ email: string, code: string } = validated.data as { email: string, code: string };
+    const { email, code } = validated.data as { email: string, code: string };
     const normalizedEmail = email.toLowerCase().trim();
-    
-    const client = await clientPromise;
-    const db = client.db('auth');
-    const codes = db.collection('codes');
-    const authCode = await codes.findOne({ email: normalizedEmail });
+
+    const codesCollection = await collections.emailCodes();
+    const authCode = await codesCollection.findOne({email: normalizedEmail});
 
     if (!authCode) {
       return NextResponse.json(
@@ -28,28 +28,28 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (authCode.expiresAt < new Date()) {
-      await codes.deleteOne({ _id: authCode._id })
+    if (new Date(authCode.createdAt.getDate() + 10 * 60000) > new Date()) {
+      await codesCollection.deleteOne({_id: authCode._id})
       return NextResponse.json(
         { error: 'Код истёк. Запросите новый код.' },
         { status: 410 }
       )
     }
 
-    if (code !== authCode.code) {
+    if (code !== authCode.code.toString()) {
       const newAttempts = (authCode.attempts || 0) + 1;
 
       if (newAttempts >= 5) {
-        await codes.deleteOne({ _id: authCode._id });
+        await codesCollection.deleteOne({_id: authCode._id});
         return NextResponse.json(
           { error: 'Превышено количество попыток. Запросите новый код.', exhausted: true },
           { status: 429 }
         );
       }
 
-      await codes.updateOne(
-        { _id: authCode._id },
-        { $set: { attempts: newAttempts } }
+      await codesCollection.updateOne(
+        {_id: authCode._id},
+        {$set: {attempts: newAttempts}}
       );
 
       return NextResponse.json(
@@ -58,40 +58,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await codes.deleteOne({ _id: authCode._id });
+    await codesCollection.deleteOne({_id: authCode._id});
 
-    const users = db.collection('users');
-    const user = await users.findOne({ email: normalizedEmail })
-
-    if (!user) {
-      await users.updateOne({email: normalizedEmail},
+    const usersCollection: Collection<User> = await collections.users();
+    const user = (await usersCollection.findOne({email: normalizedEmail})) as User ??
+      (await usersCollection.updateOne({email: normalizedEmail},
         {
           $set: {
             role: "user"
           },
-          $setOnInsert: {
-            createdAt: new Date(),
-          },
         },
-        {upsert: true});
-    }
-    const role = user ? user.role : "user";
+        {upsert: true})
+      );
+
+    const role: Role = user ? user.role : "user";
 
     const token = await createToken({
+      userId: user._id.toString(),
       email: normalizedEmail,
       role: role
     });
 
-    const response = NextResponse.json({ 
+    const response: NextResponse = NextResponse.json({
       success: true,
-      message: 'Logged in successfully' 
+      message: 'Logged in successfully'
     });
 
+    
     response.cookies.set('auth-token', token, {
-      httpOnly: true,  
-      secure: process.env.NODE_ENV === 'production', 
-      sameSite: 'lax', 
-      maxAge: 60 * 60 * 24 
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24,
+      domain: `.${(process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost').split(':')[0]}`,
     });
 
     return response;

@@ -2,11 +2,13 @@ import { Button } from '@/components/ui/button';
 import Link from "next/link"
 import Config from '@/config';
 import { headers } from "next/headers";
+import { getAccessLevel } from "@/lib/auth";
+import { Role } from "@/lib/types"
 
 export async function Hero() {
   const headersList = await headers();
   const userRole = headersList.get('x-user-role');
-  const canCreate = userRole === "organizer" || userRole === "admin";
+  const canCreate = (await getAccessLevel(userRole as Role)) >= 2;
 
   return (
     <div className="h-[calc(100vh-10rem)] flex flex-col items-center justify-center gap-20">

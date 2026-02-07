@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb'
 
-const uri = process.env.MONGODB_URI!
+const uri: string = process.env.MONGODB_URI!
 const options = {}
 
 let client: MongoClient

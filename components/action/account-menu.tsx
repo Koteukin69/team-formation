@@ -1,22 +1,20 @@
 import { Button } from '@/components/ui/button';
 
-export function AccountMenu({ userEmail }: { userEmail: string | null }) {
+export function AccountMenu({ userId }: { userId: string | null }) {
 
   return (
-    userEmail ? (
-      <div className="">
-        <div className="flex justify-between items-center">
-          {userEmail}
-          <a href={"/logout"}><Button className={"w-20"} size={"sm"}>Выйти</Button></a>
-        </div>
-      </div>
-    ) : (
-      <div className="">
-        <div className="flex justify-between items-center">
+    <div className="flex gap-5 items-center">
+      {userId ? (
+        <>
+          {userId}
+          <a href={"/logout"}><Button size={"sm"}>Выйти</Button></a>
+        </>
+      ) : (
+        <>
           Вы не авторизованы
-          <a href={"/login"}><Button className={"w-20"} size={"sm"}>Войти</Button></a>
-        </div>
-      </div>
-    )
+          <a href={"/login"}><Button size={"sm"}>Войти</Button></a>
+        </>
+      )}
+    </div>
   )
 }

@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { JWTPayload, verifyToken } from '@/lib/auth';
+import {createToken, verifyToken} from '@/lib/auth';
 import { NextURL } from "next/dist/server/web/next-url";
+import {JWTPayload, User} from '@/lib/types';
+import {Collection, ObjectId} from "mongodb";
+import {collections} from "@/lib/db/collections";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const hostname: string = request.headers.get('host') || '';
+  const hostname = request.headers.get('host') || '';
   const rootDomain: string = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost';
 
-  const hostnameWithoutPort: string = hostname.split(':')[0];
-  
-  const isSubdomain: boolean = hostnameWithoutPort !== rootDomain &&
-    hostnameWithoutPort !== `www.${rootDomain}` &&
-    hostnameWithoutPort.endsWith(`.${rootDomain}`);
-  
-  const subdomain: string = isSubdomain
-    ? hostnameWithoutPort.replace(`.${rootDomain}`, '')
-    : '';
+  const subdomain = hostname.split('.')[0];
+  const isSubdomain = subdomain !== rootDomain.split('.')[0] &&
+    subdomain !== 'www';
 
   const token: string | undefined = request.cookies.get('auth-token')?.value;
   const payload: JWTPayload | null = token ? await verifyToken(token) : null;
@@ -25,8 +22,28 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname.startsWith('/logout')) {
-    const response: NextResponse = NextResponse.redirect(new URL('/', request.url));
+    const response = NextResponse.redirect(new URL('/', request.url));
     response.cookies.delete('auth-token');
+    return response;
+  }
+
+  if (pathname.startsWith('/refresh-session') && payload) {
+    const response = NextResponse.redirect(new URL('/', request.url));
+    const usersCollection: Collection<User> = await collections.users();
+    const user = (await usersCollection.findOne({_id: new ObjectId(payload.userId)})) as User;
+
+    if (!user) {
+      return NextResponse.redirect(new URL('/logout', request.url));
+    }
+
+    const token = await createToken({
+      userId: user._id.toString(),
+      email: user?.email,
+      telegram_id: user?.telegram_id,
+      role: user.role
+    });
+
+    response.cookies.set('auth-token', token);
     return response;
   }
 
@@ -41,7 +58,7 @@ export async function proxy(request: NextRequest) {
 
     const requestHeaders = new Headers(request.headers);
     if (payload) {
-      requestHeaders.set('x-user-email', payload.email);
+      requestHeaders.set('x-user-id', payload.userId);
       requestHeaders.set('x-user-role', payload.role);
     }
 
@@ -53,7 +70,7 @@ export async function proxy(request: NextRequest) {
   if (!payload) return NextResponse.next();
 
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-user-email', payload.email);
+  requestHeaders.set('x-user-id', payload.userId);
   requestHeaders.set('x-user-role', payload.role);
 
   return NextResponse.next({

@@ -1,21 +1,16 @@
 import { SignJWT, jwtVerify } from 'jose';
-import { NextRequest } from 'next/server';
+import { JWTPayload, Role } from "./types";
 
-const jwtSecret = process.env.JWT_SECRET;
-const isDev = process.env.NODE_ENV === 'development';
+const jwtSecret: string | undefined = process.env.JWT_SECRET;
+const isProd: boolean = process.env.NODE_ENV === 'production';
 
-if (!isDev && (!jwtSecret || jwtSecret.length < 32)) {
+if (isProd && (!jwtSecret || jwtSecret.length < 32)) {
   throw new Error('JWT_SECRET environment variable must be set and at least 32 characters');
 }
 
-const SECRET_KEY = new TextEncoder().encode(
+const SECRET_KEY: Uint8Array<ArrayBuffer> = new TextEncoder().encode(
   jwtSecret || 'dev-secret-key-for-local-development-only'
 );
-
-export interface JWTPayload {
-  email: string;
-  role: 'user' | 'organizer' | 'admin';
-}
 
 export async function createToken(payload: JWTPayload): Promise<string> {
   return await new SignJWT({ ...payload })
@@ -34,8 +29,6 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
   }
 }
 
-export async function getUserFromRequest(req: NextRequest): Promise<JWTPayload | null> {
-  const token = req.cookies.get('auth-token')?.value;
-  if (!token) return null;
-  return verifyToken(token);
+export async function getAccessLevel(role?: Role): Promise<number> {
+  return role == "admin" ? 3 : role == "organizer" ? 2 : role == "user" ? 1 : 0;
 }

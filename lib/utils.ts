@@ -6,6 +6,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function generateCode(): string {
-  return randomInt(100000, 999999).toString()
+export function generateCode() {
+  return randomInt(100000, 999999)
 }

@@ -3,12 +3,15 @@ import { headers } from "next/headers";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, Users } from "lucide-react";
-import { getMarathons } from "@/lib/data/marathons";
+import { collections } from "@/lib/db/collections";
+import { schemas } from "@/lib/validator"
+import { z } from "zod";
 
 export default async function MarathonsPage() {
   const headersList = await headers();
   const userRole = headersList.get("x-user-role");
-  const marathons = await getMarathons();
+  const collection = await collections.marathons();
+  const marathons = await collection.find().toArray();
   const canCreate = userRole === "organizer" || userRole === "admin";
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost";
 
@@ -71,8 +74,8 @@ export default async function MarathonsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {marathons.map((marathon) => (
-            <Link key={marathon.id} href={`//${marathon.slug}.${rootDomain}`}>
+          {marathons.map((marathon, i) => (
+            <Link key={i} href={`//${marathon.slug}.${rootDomain}`}>
               <Card className="h-full transition-colors hover:bg-accent/50 cursor-pointer">
                 <CardHeader>
                   <CardTitle className="line-clamp-1">{marathon.name}</CardTitle>

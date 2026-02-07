@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Loader2, Plus } from "lucide-react";
-import { marathonSchema } from "@/lib/validator";
+import { schemas } from "@/lib/validator";
 
 export function MarathonForm() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export function MarathonForm() {
     e.preventDefault();
     setError(null);
 
-    const validation = marathonSchema.safeParse({ 
+    const validation = schemas.marathon.safeParse({
       name, 
       slug,
       topic,
@@ -60,6 +60,10 @@ export function MarathonForm() {
         const data = await response.json();
 
         if (!response.ok) {
+          if (data.redirect) {
+            window.location.href = data.redirect;
+            return;
+          }
           setError({ message: data.error || "Ошибка создания марафона" });
           return;
         }

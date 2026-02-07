@@ -25,6 +25,7 @@ jobs:
             RESEND_FROM="${{ secrets.RESEND_FROM }}"
             JWT_SECRET="${{ secrets.JWT_SECRET }}"
             NEXT_PUBLIC_ROOT_DOMAIN=${{ secrets.NEXT_PUBLIC_ROOT_DOMAIN }}
+            MONGODB_NAME=${{ secrets.MONGODB_NAME }}
             EOF
             
             npm install

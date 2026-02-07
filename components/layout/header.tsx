@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 
 export async function Header() {
   const headersList = await headers();
-  const userEmail = headersList.get('x-user-email');
+  const userId = headersList.get('x-user-id');
 
   return (
     <header>
@@ -12,7 +12,7 @@ export async function Header() {
         <ThemeToggle />
       </div>
       <div className="absolute top-5 right-5">
-        <AccountButton userEmail={userEmail} />
+        <AccountButton userId={userId} />
       </div>
     </header>
   )

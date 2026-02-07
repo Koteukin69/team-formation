@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Users, Info } from "lucide-react";
 import { Markdown } from "@/components/ui/markdown";
 import Config from "@/config";
-import { getMarathonBySlug } from "@/lib/data/marathons";
+import {collections} from "@/lib/db/collections";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -18,7 +18,8 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const marathon = await getMarathonBySlug(slug);
+  const collection = await collections.marathons();
+  const marathon = await collection.findOne({ slug });
 
   if (!marathon) {
     return {
@@ -34,7 +35,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function MarathonPage({ params }: Props) {
   const { slug } = await params;
-  const marathon = await getMarathonBySlug(slug);
+  const collection = await collections.marathons();
+  const marathon = await collection.findOne({ slug });
 
   if (!marathon) {
     notFound();

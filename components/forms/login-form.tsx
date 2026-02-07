@@ -3,10 +3,10 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Field, FieldDescription, FieldError, FieldLabel, FieldSet } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Mail, ArrowLeft, Loader2 } from "lucide-react";
-import { requestCodeSchema, verifyCodeSchema } from "@/lib/validator";
+import { schemas } from "@/lib/validator";
 
 type FormState = "email" | "code";
 
@@ -22,7 +22,7 @@ export function LoginForm() {
     e.preventDefault();
     setError(null);
 
-    const validation = requestCodeSchema.safeParse({ email });
+    const validation = schemas.requestCode.safeParse({ email });
     if (!validation.success) {
       setError({ field: "email", message: "Введите корректный email" });
       return;
@@ -54,7 +54,7 @@ export function LoginForm() {
     e.preventDefault();
     setError(null);
 
-    const validation = verifyCodeSchema.safeParse({ email, code });
+    const validation = schemas.verifyCode.safeParse({ email, code });
     if (!validation.success) {
       setError({ field: "code", message: "Введите 6-значный код" });
       return;

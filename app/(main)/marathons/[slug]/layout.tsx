@@ -1,6 +1,6 @@
-import {Field, FieldDescription, FieldGroup, FieldSet, FieldTitle} from "@/components/ui/field";
-import {getMarathonBySlug} from "@/lib/data/marathons";
-import {notFound} from "next/navigation";
+import { Field, FieldDescription, FieldGroup, FieldSet, FieldTitle } from "@/components/ui/field";
+import { notFound } from "next/navigation";
+import { collections } from "@/lib/db/collections";
 
 export default async function MarathonsLayout({
   children, params,
@@ -9,7 +9,8 @@ export default async function MarathonsLayout({
   params: Promise<{ slug: string }>;
 }>) {
   const { slug } = await params;
-  const marathon = await getMarathonBySlug(slug);
+  const collection = await collections.marathons();
+  const marathon = await collection.findOne({ slug });
 
   if (!marathon) {
     notFound();

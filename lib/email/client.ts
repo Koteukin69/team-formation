@@ -14,13 +14,13 @@ export async function send(email: string, subject: string, html: string): Promis
     });
 
     if (error) {
-      console.error('Email send error:', error)
-      return false
+      console.error('Email send error:', error);
+      return false;
     }
     
     return true
   } catch (error) {
-    console.error('Email send error:', error)
-    return false
+    console.error('Email send error:', error);
+    return false;
   }
 }
