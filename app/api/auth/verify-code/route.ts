@@ -84,13 +84,12 @@ export async function POST(req: NextRequest) {
       message: 'Logged in successfully'
     });
 
-    
     response.cookies.set('auth-token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24,
-      domain: `.${(process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost').split(':')[0]}`,
+      domain: `.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`,
     });
 
     return response;
